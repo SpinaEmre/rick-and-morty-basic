@@ -1,0 +1,19 @@
+{
+  "name": "rickandmortybasic",
+  "version": "1.0.0",
+  "description": "Rick And Mory Basic View",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SpinaEmre/rick-and-morty-basic.git"
+  },
+  "author": "Emre OZTUNC",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SpinaEmre/rick-and-morty-basic/issues"
+  },
+  "homepage": "https://github.com/SpinaEmre/rick-and-morty-basic#readme"
+}
