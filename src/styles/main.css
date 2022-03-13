@@ -66,8 +66,31 @@ div {
 }
 .characterInfo span.status {
     font-size: 1rem;
+    height: 1rem;
     display: block;
     margin-top: 5px;
+    transition: height 0.3s ease-in;
+}
+.characterInfo span.status.expandable {
+    height: 1.1rem;
+    overflow: hidden;
+}
+.characterInfo span.status.expandable:hover {
+    height: auto;
+    background-color: beige;
+    position: absolute;
+    width: 270px;
+    background-color: rgb(60, 62, 68);
+    color: #fff;
+    border: 1px solid #fff;
+    padding: 10px;
+}
+.characterInfo span.status.expandable.hh {
+    height: auto;
+}
+.characterInfo span.status.sTitle {
+    color: rgb(158, 158, 158);
+    font-size: 0.9rem
 }
 .characterInfo a.characterName:hover {
     color: rgb(255, 152, 0);

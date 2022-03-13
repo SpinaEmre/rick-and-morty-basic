@@ -5,13 +5,15 @@ CharacterListModel = function(options) {
     this.eventTarget = new EventTarget();	
 
     this.characterCache = {};
-    this.originCache = {};
+    this.locationCache = {};
     this.episodeCache = {};
     this.init();
 };
 
 CharacterListModel.prototype.defaults = {
     'characterListApi': 'https://rickandmortyapi.com/api/character?page=', 
+    'episodeDetailsApi': 'https://rickandmortyapi.com/api/episode/',
+    'locationDetailsApi': 'https://rickandmortyapi.com/api/location/',
     'initialPage': 1, 
     'currentPage': 1
 };
@@ -32,6 +34,9 @@ CharacterListModel.prototype.init = function() {
 
 CharacterListModel.prototype.load = function(opt_page, opt_fetchUrl) {
     this.dispatchEvent('model_busy', {'detail': {'count': 1}});
+    this.characterCache = {};
+    this.locationCache = {};
+    this.episodeCache = {};
     this.fetchCharacterList(opt_page, opt_fetchUrl);
 };
 
@@ -49,14 +54,7 @@ CharacterListModel.prototype.fetchCharacterList = function(opt_page, opt_fetchUr
         .then(response => response.json())
         .then(data => {
             that.updateCharacterCache(data);
-            that.dispatchEvent('newCharacterListPageReady', {
-                'detail': 
-                    {
-                        'data': data
-                    }
-                }
-            );
-
+            that.listAndFetchLocationsForCurrentCharacters();
         })
         .catch(error => {
             that.dispatchEvent('listFetchError', {
@@ -69,41 +67,131 @@ CharacterListModel.prototype.fetchCharacterList = function(opt_page, opt_fetchUr
         });
 };
         
+CharacterListModel.prototype.listAndFetchLocationsForCurrentCharacters = function() {
+    var that = this;
+
+    var locationsArr = that.characterCache.results.reduce((initial, current) => {
+        if (current.location && current.location.url) {
+            let locId = current.location.url.replace('https://rickandmortyapi.com/api/location/', '');
+            if (initial.indexOf(locId) < 0) {
+                initial.push(locId);
+            }
+        }
+        if (current.origin && current.origin.url) {
+            let locId = current.origin.url.replace('https://rickandmortyapi.com/api/location/', '');
+            if (initial.indexOf(locId) < 0) {
+                initial.push(locId);
+            }
+        }
+        return initial;
+    }, []);
+    that.fetchLocationsForCurrentCharacters(locationsArr);
+};
+
+CharacterListModel.prototype.fetchLocationsForCurrentCharacters = function(list) {
+    var that = this, 
+        urlSuffix = list.join(',');
+    
+    fetch(that.options.locationDetailsApi + urlSuffix, {})
+        .then(response => response.json())
+        .then(data => {
+            that.updateLocationCache(data);
+            that.listAndFetchEpisodesForCurrentCharacters();
+        })
+        .catch(error => {
+            that.dispatchEvent('locationFetchError', {
+                'detail': 
+                    {
+                        'data': error
+                    }
+                }
+            );
+        });
+};
+          
+CharacterListModel.prototype.listAndFetchEpisodesForCurrentCharacters = function() {
+    var that = this;
+
+    var episodesArr = that.characterCache.results.reduce((initial, current) => {
+        if (current.episode && current.episode.length > 0) {
+            current.episode.forEach((episode) => {
+                let epId = episode.replace('https://rickandmortyapi.com/api/episode/', '');
+                if (initial.indexOf(epId) < 0) {
+                    initial.push(epId);
+                }
+            });
+        }
+        return initial;
+    }, []);
+    that.fetchEpisodesForCurrentCharacters(episodesArr);
+};
+
+CharacterListModel.prototype.fetchEpisodesForCurrentCharacters = function(list) {
+    var that = this, 
+        urlSuffix = list.join(',');
+    
+    fetch(that.options.episodeDetailsApi + urlSuffix, {})
+        .then(response => response.json())
+        .then(data => {
+            that.updateEpisodeCache(data);
+
+            that.dispatchEvent('newCharacterListPageReady', {
+                'detail': 
+                    {
+                        'characters': that.characterCache, 
+                        'episodes': that.episodeCache,
+                        'locations': that.locationCache
+                    }
+                }
+            );
+
+        })
+        .catch(error => {
+            that.dispatchEvent('episodeFetchError', {
+                'detail': 
+                    {
+                        'data': error
+                    }
+                }
+            );
+        });
+}; 
+        
 CharacterListModel.prototype.getEpisodeData = function(id) {
-
+    return this.episodeCache[id];
 };
         
-CharacterListModel.prototype.fetchEpisodeData = function(id) {
-
-};
-        
-CharacterListModel.prototype.getOriginData = function(id) {
-
-};
-        
-CharacterListModel.prototype.fetchOriginData = function(id) {
-
-};
-
-CharacterListModel.prototype.getCharacterData = function(id) {
-
-};
-        
-CharacterListModel.prototype.fetchCharacterData = function(id) {
-
+CharacterListModel.prototype.getLocationData = function(id) {
+    return this.locationCache[id];
 };
     
 CharacterListModel.prototype.updateCharacterCache = function(data) {
-
+    this.characterCache = data;
 };
 
-CharacterListModel.prototype.updateOriginCache = function(data) {
+CharacterListModel.prototype.updateLocationCache = function(data) {
+    //this.locationCache = data;
+    var that = this;
 
+    if (data && data.length > 0) {
+        that.locationCache = {};
+        data.forEach((location) => {
+            that.locationCache[location.id] = location;
+        });
+    }
 };
     
 CharacterListModel.prototype.updateEpisodeCache = function(data) {
+    var that = this;
 
+    if (data && data.length > 0) {
+        that.episodeCache = {};
+        data.forEach((episode) => {
+            that.episodeCache[episode.id] = episode;
+        });
+    }
 };
+
 
 CharacterListModel.prototype.dispatchEvent = function(eventName, eventInit) {
     this.eventTarget.dispatchEvent(new CustomEvent(eventName, eventInit));
@@ -175,14 +263,17 @@ CharacterListWidget.prototype.bindModelEvents = function() {
     });
 
     that.eventTarget.addEventListener('newCharacterListPageReady', function(e) {
-         that.handleCharactersList(e.detail?.data);
+        that.handleCharactersList(e.detail);
+        that.handleEpisodes
         that.render();
         that.toggleContentOverlay(false);
     });
 };
 	
 CharacterListWidget.prototype.handleCharactersList = function(data) {
-    this.contentData = data;
+    this.contentData = data.characters;
+    this.episodes = data.episodes;
+    this.locations = data.locations;
 };
 	
 CharacterListWidget.prototype.toggleContentOverlay = function(isVisible) {
@@ -225,27 +316,39 @@ CharacterListWidget.prototype.templates_base = function() {
 };
 	
 CharacterListWidget.prototype.templates_characterCard = function(character) {
-    var rv = '<div class="characterCard">';
-    
-    rv += '<div class="imageWrapper">' + 
-        '<img src="' + character.image + '" width=300 height=300 title="' + character.name + '"></div>';
-    
-    rv += '<div class="characterInfo"><div class="section">';
+    var rv = '<div class="characterCard">' + 
+                '<div class="imageWrapper">' + 
+                    '<img src="' + character.image + '" width=300 height=300 title="' + character.name + '">' + 
+                '</div>' + 
+                '<div class="characterInfo"><div class="section">' +
+                    '<a class="characterName" href="' + 
+                        character.url + 
+                        '" target="_blank">' + 
+                        character.name + 
+                    '</a>' + 
+                    '<span class="status">' + 
+                        '<span class="statusBall ' + 
+                            character.status + '">' + 
+                        '</span>' + 
+                        character.status + ' - ' + character.species + 
+                    '</span>' + 
+                '</div>' + 
+                '<div class="section">' + 
+                    '<span class="status sTitle">Last known location:</span>' + 
+                    '<span class="status">' + character.location?.name + '</span>' + 
+                '</div>' + 
+                '<div class="section">' + 
+                    '<span class="status sTitle">Origin:</span>' + 
+                    '<span class="status expandable">' + character.origin?.name + '</span>' + 
+                '</div>' + 
+                '<div class="section">' + 
+                    '<span class="status sTitle">Episodes:</span>' + 
+                    '<span class="status expandable">...</span>' + 
+                '</div>' + 
+            '</div>' + 
+        '</div>';
 
-    rv += '<a class="characterName" href="' + character.url + '" target="_blank">' + character.name + '</a>';
-    rv += '<span class="status"><span class="statusBall ' + character.status + '"></span>' + character.status + ' - ' + character.species + '</span>';
-    rv += '</div><div class="section">';
-    rv += '<span class="status">Last known location:</span>';
-    rv += '<span class="status">' + character.location?.name + '</span>';
-    rv += '</div><div class="section">';
-    rv += '<span class="status">Origin:</span>';
-    rv += '<span class="status">' + character.origin?.name + '</span>';
-    rv += '</div><div class="section">';
-
-    rv += '</div></div></div>';
-    console.log(rv);
     return rv;
-    + (character.name || 'belirsiz') + '</div>';
 };
 	
 CharacterListWidget.prototype.templates_paginationButtons = function(content) {
