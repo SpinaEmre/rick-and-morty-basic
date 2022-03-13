@@ -3,6 +3,7 @@ body {
     background-color: rgb(32, 35, 41);
 }
 div {
+    display: block;
     box-sizing: border-box;
 }
 #mainWrapper {
@@ -10,18 +11,64 @@ div {
 
 }
 #mainContainer {
-    width: 80%;
+    width: 1140px;
     background-color: rgb(36, 40, 47);
     margin: 0 auto;
-    min-height: 600px;
+    /* min-height: 600px; */
     color: rgb(158, 158, 158);
 }
-.charactersContainer {
-
+.charactersListWrapper {
+    padding: 10px 20px;
+    float: left;
+}
+.charactersListContainer {
+    width: 100%;
+    float: left;
+}
+.characterCard {
+    border-radius: 5px;
+    background-color: rgb(60, 62, 68);
+    width: 500px;
+    height: 200px;
+    display: block;
+    float: left;
+    margin: 20px;
+}
+.imageWrapper {
+    width: 40%;
+    height: 200px;
+    overflow: hidden;
+    float: left;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+.imageWrapper img {
+    transform: scale(0.67);
+    margin-left: -50px;
+    margin-top: -50px;
+    transition: transform 0.3s ease-in;
+    cursor: not-allowed;
+}
+.imageWrapper img:hover {
+    transform: scale(0.77);
+}
+.characterInfo {
+    width: 70%;
+    float: left;
 }
 .paginationContainer {
-
+    width: 100%;
+    height: 40px;
 }
 .listPaginationBtn {
+    line-height: 24px;
+    padding: 5px 20px;
+    width: 100px;
+}
+.previousPage {
+    float: left;
+}
 
+.nextPage {
+    float: right;
 }

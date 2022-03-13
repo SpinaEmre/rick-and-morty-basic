@@ -163,11 +163,11 @@ CharacterListWidget.prototype.dispatchEvent = function(eventName, eventInit) {
 	
 CharacterListWidget.prototype.templates_base = function() {
     var that = this, 
-        rv = '<div>',
+        rv = '<div class="charactersListWrapper">',
         contentData = that.contentData,
         characterList = contentData && contentData.results;
 
-    rv += '<div class="charactersContainer">';
+    rv += '<div class="charactersListContainer">';
 
     if (characterList && characterList.length > 0) {
         for (var character in characterList) {
@@ -185,13 +185,28 @@ CharacterListWidget.prototype.templates_base = function() {
 };
 	
 CharacterListWidget.prototype.templates_characterCard = function(character) {
-    return '<div>' + (character.name || 'belirsiz') + '</div>';
+    var rv = '<div class="characterCard">';
+    
+    rv += '<div class="imageWrapper">' + 
+        '<img src="' + character.image + '" width=300 height=300 title="' + character.name + '"></div>';
+    
+    rv += '<div class="characterInfo"><div class="section">';
+
+    rv += '<a href="' + character.url + '">' + character.name + '</a>';
+    rv += '<span class="status">' + character.status + ' - ' + character.species + '</span>';
+    rv += '</div><div class="section">';
+    rv += '</div><div class="section">';
+
+    rv += '</div></div></div>';
+    console.log(rv);
+    return rv;
+    + (character.name || 'belirsiz') + '</div>';
 };
 	
 CharacterListWidget.prototype.templates_paginationButtons = function(content) {
     var rv = '';
     if (content && content.info) {
-        rv += '<div class="pagination">';
+        rv += '<div class="paginationContainer">';
 
         rv += '<button class="listPaginationBtn previousPage' +
             (content.info.prev ? '' : ' disabled')  + '" data-link="' + 
@@ -210,8 +225,6 @@ CharacterListWidget.prototype.templates_paginationButtons = function(content) {
 
     return rv;
 };
-
-
 
 
 (function () {
