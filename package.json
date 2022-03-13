@@ -4,7 +4,8 @@
   "description": "Rick And Mory Basic View",
   "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "lite-server"
   },
   "repository": {
     "type": "git",
@@ -12,6 +13,9 @@
   },
   "author": "Emre OZTUNC",
   "license": "ISC",
+  "devDependencies": {
+    "lite-server": "^2.5.4"
+  },
   "bugs": {
     "url": "https://github.com/SpinaEmre/rick-and-morty-basic/issues"
   },
