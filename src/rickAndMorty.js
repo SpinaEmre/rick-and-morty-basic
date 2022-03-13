@@ -4,6 +4,9 @@ CharacterListModel = function(options) {
     this.enhanceOptions(options);
     this.eventTarget = new EventTarget();	
 
+    this.characterCache = {};
+    this.originCache = {};
+    this.episodeCache = {};
     this.init();
 };
 
@@ -45,7 +48,8 @@ CharacterListModel.prototype.fetchCharacterList = function(opt_page, opt_fetchUr
     fetch(opt_fetchUrl || that.options.characterListApi, {})
         .then(response => response.json())
         .then(data => {
-            this.dispatchEvent('newCharacterListPageReady', {
+            that.updateCharacterCache(data);
+            that.dispatchEvent('newCharacterListPageReady', {
                 'detail': 
                     {
                         'data': data
@@ -55,7 +59,7 @@ CharacterListModel.prototype.fetchCharacterList = function(opt_page, opt_fetchUr
 
         })
         .catch(error => {
-            this.dispatchEvent('listFetchError', {
+            that.dispatchEvent('listFetchError', {
                 'detail': 
                     {
                         'data': error
@@ -63,6 +67,42 @@ CharacterListModel.prototype.fetchCharacterList = function(opt_page, opt_fetchUr
                 }
             );
         });
+};
+        
+CharacterListModel.prototype.getEpisodeData = function(id) {
+
+};
+        
+CharacterListModel.prototype.fetchEpisodeData = function(id) {
+
+};
+        
+CharacterListModel.prototype.getOriginData = function(id) {
+
+};
+        
+CharacterListModel.prototype.fetchOriginData = function(id) {
+
+};
+
+CharacterListModel.prototype.getCharacterData = function(id) {
+
+};
+        
+CharacterListModel.prototype.fetchCharacterData = function(id) {
+
+};
+    
+CharacterListModel.prototype.updateCharacterCache = function(data) {
+
+};
+
+CharacterListModel.prototype.updateOriginCache = function(data) {
+
+};
+    
+CharacterListModel.prototype.updateEpisodeCache = function(data) {
+
 };
 
 CharacterListModel.prototype.dispatchEvent = function(eventName, eventInit) {
@@ -192,9 +232,14 @@ CharacterListWidget.prototype.templates_characterCard = function(character) {
     
     rv += '<div class="characterInfo"><div class="section">';
 
-    rv += '<a href="' + character.url + '">' + character.name + '</a>';
-    rv += '<span class="status">' + character.status + ' - ' + character.species + '</span>';
+    rv += '<a class="characterName" href="' + character.url + '" target="_blank">' + character.name + '</a>';
+    rv += '<span class="status"><span class="statusBall ' + character.status + '"></span>' + character.status + ' - ' + character.species + '</span>';
     rv += '</div><div class="section">';
+    rv += '<span class="status">Last known location:</span>';
+    rv += '<span class="status">' + character.location?.name + '</span>';
+    rv += '</div><div class="section">';
+    rv += '<span class="status">Origin:</span>';
+    rv += '<span class="status">' + character.origin?.name + '</span>';
     rv += '</div><div class="section">';
 
     rv += '</div></div></div>';

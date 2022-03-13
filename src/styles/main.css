@@ -11,7 +11,7 @@ div {
 
 }
 #mainContainer {
-    width: 1140px;
+    width: 1200px;
     background-color: rgb(36, 40, 47);
     margin: 0 auto;
     /* min-height: 600px; */
@@ -28,33 +28,72 @@ div {
 .characterCard {
     border-radius: 5px;
     background-color: rgb(60, 62, 68);
-    width: 500px;
-    height: 200px;
+    width: 540px;
+    height: 240px;
     display: block;
     float: left;
     margin: 20px;
+    font-family: Arial, Helvetica, sans-serif;
 }
 .imageWrapper {
-    width: 40%;
-    height: 200px;
+    width: 240px;
+    height: 240px;
     overflow: hidden;
     float: left;
     border-top-left-radius: 5px;
     border-bottom-left-radius: 5px;
 }
 .imageWrapper img {
-    transform: scale(0.67);
-    margin-left: -50px;
-    margin-top: -50px;
+    transform: scale(0.8);
+    margin-left: -30px;
+    margin-top: -30px;
     transition: transform 0.3s ease-in;
     cursor: not-allowed;
 }
 .imageWrapper img:hover {
-    transform: scale(0.77);
+    transform: scale(0.85);
 }
 .characterInfo {
-    width: 70%;
+    width: 300px;
     float: left;
+    color: rgb(245, 245, 245);
+    padding: 10px 15px;;
+}
+.characterInfo a.characterName {
+    font-size: 1.25rem; 
+    text-decoration: none;
+    color: rgb(245, 245, 245);
+}
+.characterInfo span.status {
+    font-size: 1rem;
+    display: block;
+    margin-top: 5px;
+}
+.characterInfo a.characterName:hover {
+    color: rgb(255, 152, 0);
+}
+.characterInfo .statusBall {
+    display: block;
+    float: left;
+    width: 10px;
+    border: none;
+    height: 10px;
+    border-radius: 5px;
+    background-color: rgb(85, 204, 68);
+    margin-top: 3px;
+    margin-right: 5px;
+}
+.characterInfo .statusBall.Dead {
+    background-color: red;
+}
+.characterInfo .statusBall.unknown {
+    background-color: gray;
+}
+.characterInfo .section {
+    display: block;
+    float: left;
+    width: 100%;
+    height: 55px;
 }
 .paginationContainer {
     width: 100%;
