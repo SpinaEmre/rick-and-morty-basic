@@ -486,6 +486,7 @@ CharacterListWidget.prototype.templates_episodes = function(episodes) {
 		window.EventTarget = EventTarget;
 	}
 }) ();
+
 window.addEventListener('DOMContentLoaded', (ev) => {
     var cl = new CharacterListWidget();
 });
