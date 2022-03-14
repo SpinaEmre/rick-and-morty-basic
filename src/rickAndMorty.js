@@ -170,8 +170,11 @@ CharacterListModel.prototype.updateCharacterCache = function(data) {
 };
 
 CharacterListModel.prototype.updateLocationCache = function(data) {
-    //this.locationCache = data;
     var that = this;
+
+    if (data && !Array.isArray(data) && typeof data == 'object') {
+        data = [data];
+    }
 
     if (data && data.length > 0) {
         that.locationCache = {};
@@ -183,6 +186,10 @@ CharacterListModel.prototype.updateLocationCache = function(data) {
     
 CharacterListModel.prototype.updateEpisodeCache = function(data) {
     var that = this;
+
+    if (data && !Array.isArray(data) && typeof data == 'object') {
+        data = [data];
+    }
 
     if (data && data.length > 0) {
         that.episodeCache = {};
@@ -204,7 +211,6 @@ CharacterListWidget = function(options) {
     this.id = options?.id || ('clw_' + this.options['baseContainerSelector']);
     this.model = new CharacterListModel(this.options);
     this.eventTarget = this.model.eventTarget;
-    this.overlayCountdown = 0;
     this.contentData = null;
 
     this.init();
@@ -227,7 +233,6 @@ CharacterListWidget.prototype.enhanceOptions = function(options) {
 
 CharacterListWidget.prototype.init = function() {
     this.render();
-   // this.adjustMaxHeight();
     this.bindDomEvents();
     this.bindModelEvents();
     this.load();
@@ -247,12 +252,14 @@ CharacterListWidget.prototype.bindDomEvents = function() {
             btn.addEventListener('click', function(e) {
                 if (!this.classList.contains('disabled')) {
                     this.classList.add('disabled');
-                    that.toggleContentOverlay(true);
                     that.load(null, this.getAttribute('data-link'));
                 }
             });
         });
     }
+    window.addEventListener('resize', function(e) {
+        that.resizeContentOverlay();
+    });
 };
 	
 CharacterListWidget.prototype.bindModelEvents = function() {
@@ -276,8 +283,26 @@ CharacterListWidget.prototype.handleCharactersList = function(data) {
     this.locations = data.locations;
 };
 	
-CharacterListWidget.prototype.toggleContentOverlay = function(isVisible) {
+CharacterListWidget.prototype.resizeContentOverlay = function() {
+    if (document.getElementsByClassName('charactersListContainer').length > 0 &&
+            document.getElementsByClassName('paginationContainer').length > 0) {
+        document.getElementsByClassName('contentOverlay')[0].style.height = 
+            (+document.getElementsByClassName('charactersListContainer')[0].offsetHeight + 
+            +document.getElementsByClassName('paginationContainer')[0].offsetHeight) + 'px';
 
+    document.getElementsByClassName('contentOverlay')[0].style.width = 
+        +document.getElementsByClassName('charactersListContainer')[0].offsetWidth + 'px';
+    }
+};
+	
+CharacterListWidget.prototype.toggleContentOverlay = function(isVisible) {
+    this.resizeContentOverlay();
+
+    if (isVisible) {
+        document.getElementsByClassName('contentOverlay')[0].classList.add('activated');
+    } else {
+        document.getElementsByClassName('contentOverlay')[0].classList.remove('activated');
+    }
 };
 	
 CharacterListWidget.prototype.load = function(opt_page, opt_fetchUrl) {
@@ -298,7 +323,9 @@ CharacterListWidget.prototype.templates_base = function() {
         contentData = that.contentData,
         characterList = contentData && contentData.results;
 
+    rv += '<h1>Welcome to Rick and Marty Characters List!</h1>';
     rv += '<div class="charactersListContainer">';
+    rv += '<div class="contentOverlay"></div>';
 
     if (characterList && characterList.length > 0) {
         for (var character in characterList) {
@@ -335,15 +362,15 @@ CharacterListWidget.prototype.templates_characterCard = function(character) {
                 '</div>' + 
                 '<div class="section">' + 
                     '<span class="status sTitle">Last known location:</span>' + 
-                    '<span class="status">' + character.location?.name + '</span>' + 
+                    '<span class="status expandable">' + this.templates_locationDetails(character.location) + '</span>' + 
                 '</div>' + 
                 '<div class="section">' + 
                     '<span class="status sTitle">Origin:</span>' + 
-                    '<span class="status expandable">' + character.origin?.name + '</span>' + 
+                    '<span class="status expandable">' + this.templates_locationDetails(character.origin) + '</span>' + 
                 '</div>' + 
                 '<div class="section">' + 
                     '<span class="status sTitle">Episodes:</span>' + 
-                    '<span class="status expandable">...</span>' + 
+                    '<span class="status expandable episodes">' + this.templates_episodes(character.episode) + '</span>' + 
                 '</div>' + 
             '</div>' + 
         '</div>';
@@ -373,7 +400,56 @@ CharacterListWidget.prototype.templates_paginationButtons = function(content) {
 
     return rv;
 };
+	
+CharacterListWidget.prototype.templates_locationDetails = function(location) {
+    var rv = '';
 
+    if (location.name != 'unknown') {
+        let locId = location.url.replace('https://rickandmortyapi.com/api/location/', ''),
+            locationData = this.model.getLocationData(locId);
+        
+        rv += locationData.name + 
+            '<span class="locationExtraInfo">' + '<br>' +
+            'Dimension: ' + locationData.dimension +
+            '<br>' + 
+            '# of Residents: ' + locationData.residents.length + 
+            '<br>' + 
+            'Type: ' + locationData.type + 
+            '</span>';
+
+    } else {
+        rv += location.name;
+    }
+
+    return rv;
+};
+
+
+CharacterListWidget.prototype.templates_episodes = function(episodes) {
+    var rv = '', 
+        that = this;
+
+    if (episodes && episodes.length > 0) {
+        rv += '<span class="locationExtraInfo"><ul>';
+        
+        episodes.forEach((episode) => {
+            var epData = that.model.getEpisodeData(episode.replace('https://rickandmortyapi.com/api/episode/', ''));
+            rv += '<li>' + 
+                epData.episode + 
+                ' <br> ' + 
+                epData.name + 
+                '<br>' + 
+                epData.air_date + 
+                '</li>';
+        });
+        
+        rv += '</span>';
+    } else {
+        rv += '...';
+    }
+
+    return rv;
+};
 
 (function () {
 	if (typeof window.CustomEvent !== 'function') {
@@ -410,8 +486,7 @@ CharacterListWidget.prototype.templates_paginationButtons = function(content) {
 		window.EventTarget = EventTarget;
 	}
 }) ();
-
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', (ev) => {
     var cl = new CharacterListWidget();
 });
 
